@@ -48,22 +48,32 @@ abstract class AbstractGiftAction implements Discount\DiscountInterface
      */
     protected $logger;
 
+    /**
+     * @var \Magento\Framework\App\Request\Http
+     */
+    protected $request;
+
 
     /**
      * @param Discount\DataFactory $discountDataFactory
      * @param ProductRepositoryInterface $productRepository
      * @param ResetGiftItems $resetGiftItems
      * @param LoggerInterface $logger
+     * @param \Magento\Framework\App\Request\Http $state
      */
-    public function __construct(Discount\DataFactory $discountDataFactory,
-                                ProductRepositoryInterface $productRepository,
-                                ResetGiftItems $resetGiftItems,
-                                LoggerInterface $logger)
+    public function __construct(
+        Discount\DataFactory $discountDataFactory,
+        ProductRepositoryInterface $productRepository,
+        ResetGiftItems $resetGiftItems,
+        LoggerInterface $logger,
+        \Magento\Framework\App\Request\Http $request
+    )
     {
         $this->discountDataFactory = $discountDataFactory;
         $this->productRepository = $productRepository;
         $this->resetGiftItems = $resetGiftItems;
         $this->logger = $logger;
+        $this->request = $request;
     }
 
     /**
@@ -78,7 +88,10 @@ abstract class AbstractGiftAction implements Discount\DiscountInterface
     {
         $stateObject = $this->getAppliedRuleStorage($item);
 
-        if ($this->canApplyRule($item, $rule, $stateObject) == false)
+        if (
+            $this->canApplyRule($item, $rule, $stateObject) == false
+            || ( $this->request->getModuleName().'/'.$this->request->getControllerName() === 'sales/order_create')
+        )
         {
             return $this->getDiscountData($item);
         }
